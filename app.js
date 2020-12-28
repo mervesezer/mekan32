@@ -1,5 +1,4 @@
 require('./app_api/models/db');
-var bodyParser = require("body-parser");
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -16,14 +15,14 @@ var app = express();
 
 
 // view engine setup
-app.use(bodyParser.urlencoded());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use('/api', routesApi);
 app.set("views", path.join(__dirname, "app_server", "views"));
 app.set("view engine", "pug");
 
 app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
