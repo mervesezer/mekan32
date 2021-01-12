@@ -1,3 +1,4 @@
+
 var mongoose = require("mongoose");
 var Mekan = mongoose.model("mekan");
 
@@ -41,7 +42,7 @@ const mekanlariListele = async (req, res) => {
         adres: mekan.adres,
         puan: mekan.puan,
         imkanlar: mekan.imkanlar,
-        mesafe: mekan.mesafe.toFixed() + "m",
+        mesafe: mekan.mesafe.toFixed(),
       };
     });
 

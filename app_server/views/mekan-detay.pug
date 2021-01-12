@@ -19,9 +19,9 @@ block content
                                 p
                                     | #{saat.gunler}
                                     if(saat.kapali)
-                                        | Kapalı
+                                        |  Kapalı
                                     else
-                                        | #{saat.acilis}-#{saat.kapanis}
+                                        |  #{saat.acilis}-#{saat.kapanis}
                     .panel.panel-primary
                         .panel-heading
                             h2.panel-title Neler Var
@@ -40,7 +40,6 @@ block content
                                 -var boylam=mekanBilgisi.koordinatlar.boylam
                                 img.img-responsive.img-rounded(src='http://maps.googleapis.com/maps/api/staticmap?center='
                                 +enlem+','+boylam+'&zoom=12&size=600x400&markers='+enlem+','+boylam+'&key=AIzaSyCmmKygTpBzHGOZEciJpAdxC9v_tWHagnE')
-
     .row
         .col-xs-12
             .panel.panel-primary.review-panel
@@ -53,9 +52,10 @@ block content
                             .review
                                 .well.well-sm.review-header
                                     span.rating
-                                    +puanOlustur(yorum.puan)
+                                    +puanOlustur(yorum.puan) &nbsp;
                                     span.reviewAuthor= yorum.yorumYapan
                                     |   &nbsp;
-                                    small.reviewTimestamp= yorum.tarih
+                                    small.reviewTimestamp
+                                        +tarihiFormatla(yorum.tarih)
                                 .col-xs-12
                                     p= yorum.yorumMetni

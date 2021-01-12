@@ -1,96 +1,109 @@
+var request = require("postman-request");
 var express = require("express");
-var router = express.Router();
 
-const anaSayfa = function (req, res, next) {
+var apiSecenekleri = {
+  sunucu: "http://localhost:3000",
+  apiYolu: "/api/mekanlar/",
+};
+
+var mesafeyiFormatla = function (mesafe) {
+  var yeniMesafe, birim;
+  if (mesafe > 1000) {
+    yeniMesafe = parseFloat(mesafe / 1000).toFixed(2);
+    birim = " km";
+  } else {
+    yeniMesafe = parseFloat(mesafe).toFixed(1);
+    birim = " m";
+  }
+  return yeniMesafe + birim;
+};
+
+var anasayfayiOlustur = function (req, res, cevap, mekanListesi) {
+  var mesaj;
+  if (!(mekanListesi instanceof Array)) {
+    mesaj = "API HATASI: Birşeyler Ters Gitti";
+    mekanListesi = [];
+  } else {
+    if (!mekanListesi.length) {
+      mesaj = "Civarda Herhangi Bir Mekan Bulunamadı!";
+    }
+  }
+
   res.render("mekanlar-liste", {
-    baslik: "Anasayfa",
+    baslik: "Mekan32",
     sayfaBaslik: {
       siteAd: "Mekan32",
       aciklama: "Isparta civarındaki mekanları keşfedin!",
     },
-    footer:"merve sezer",
-    mekanlar: [
-      {
-        ad: "Starbucks",
-        adres: "Centrum Garden",
-        puan: "3",
-        imkanlar: ["kahve", "çay", "pasta"],
-        mesafe: "10km",
-      },
-      {
-        ad: "Gloria Jeans",
-        adres: "Iyaş AVM",
-        puan: "2",
-        imkanlar: ["kahve", "kek", "çay"],
-        mesafe: "5km",
-      },
-      {
-        ad: "Pidem",
-        adres: "Iyaş AVM",
-        puan: "9",
-        imkanlar: ["pide", "künefe", "içecek"],
-        mesafe: "5km",
-      },
-      {
-        ad: "Burger King",
-        adres: "Iyaş AVM",
-        puan: "7",
-        imkanlar: ["hamburger", "içecek"],
-        mesafe: "5km",
-      },
-      {
-        ad: "B&B Burger",
-        adres: "Iyaş AVM Yanı",
-        puan: "10",
-        imkanlar: ["hamburger", "pizza", "içecek"],
-        mesafe: "10km",
-      },
-
-    ],
+    mekanlar: mekanListesi,
+    mesaj: mesaj,
+    cevap: cevap,
   });
 };
 
-const mekanBilgisi = function (req, res, next) {
-  res.render("mekan-detay", {
-    baslik: "Mekan Bilgisi",
-    sayfaBaslik: "Starbucks",
-    footer:"merve sezer",
-    mekanBilgisi: {
-      ad: "Starbucks",
-      adres: "Centrum Garden",
-      puan: "3",
-      imkanlar: ["kahve", "çay", "pasta"],
-      koordinatlar: {
-        enlem: 37.781885,
-        boylam: 30.566034,
-      },
-      saatler: [
-        {
-          gunler: "Pazartesi-Cuma",
-          acilis: "7:00",
-          kapanis: "23:00",
-          kapali: false,
-        },
-        {
-          gunler: "Cumartesi",
-          acilis: "9:00",
-          kapanis: "22:30",
-          kapali: false,
-        },
-        {
-          gunler: "Pazar",
-          kapali: true,
-        },
-      ],
-      yorumlar: [
-        {
-          yorumYapan: "Merve Sezer",
-          puan: "3",
-          tarih: "1 Aralık 2020",
-          yorumMetni: "Kahveleri Çok Pahalı",
-        },
-      ],
+const anaSayfa = function (req, res) {
+  var istekSecenekleri = {
+    url: apiSecenekleri.sunucu + apiSecenekleri.apiYolu,
+    method: "GET",
+    json: {},
+    qs: {
+      enlem: req.query.enlem,
+      boylam: req.query.boylam,
     },
+  };
+  request(istekSecenekleri, function (hata, cevap, mekanlar) {
+    var i, gelenMekanlar;
+    gelenMekanlar = mekanlar;
+    if (!hata && gelenMekanlar.length) {
+      for (i = 0; i < gelenMekanlar.length; i++) {
+        gelenMekanlar[i].mesafe = mesafeyiFormatla(gelenMekanlar[i].mesafe);
+      }
+    }
+    anasayfayiOlustur(req, res, cevap, gelenMekanlar);
+  });
+};
+
+var detaySayfasiOlustur = function (req, res, mekanDetaylari) {
+  res.render("mekan-detay", {
+    baslik: mekanDetaylari.ad,
+    sayfaBaslik: mekanDetaylari.ad,
+    mekanBilgisi: mekanDetaylari,
+  });
+};
+
+var hataGoster = function (req, res, durum) {
+  var baslik, icerik;
+  if ((durum = 404)) {
+    baslik = "404, Sayfa Bulunamadı!";
+    icerik = "Kusura bakma sayfayı bulamadık!";
+  } else {
+    baslik = durum + ", Birşeyler Ters Gitti!";
+    icerik = "Ters Giden Birşey Var";
+  }
+  res.status(durum);
+  res.render("hata", {
+    baslik: baslik,
+    icerik: icerik,
+  });
+};
+
+const mekanBilgisi = function (req, res, callback) {
+  var istekSecenekleri = {
+    url: apiSecenekleri.sunucu + apiSecenekleri.apiYolu + req.params.mekanid,
+    method: "GET",
+    json: {},
+  };
+  request(istekSecenekleri, function (hata, cevap, mekanDetaylari) {
+    var gelenMekan = mekanDetaylari;
+    if (cevap.statusCode == 200) {
+      gelenMekan.koordinatlar = {
+        enlem: mekanDetaylari.koordinatlar[0],
+        boylam: mekanDetaylari.koordinatlar[1],
+      };
+      detaySayfasiOlustur(req, res, gelenMekan);
+    } else {
+      hataGoster(req, res, cevap.statusCode);
+    }
   });
 };
 
@@ -103,3 +116,4 @@ module.exports = {
   mekanBilgisi,
   yorumEkle,
 };
+
