@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
 
 var dbURI =
-  "mongodb+srv://mekan32:mekan32@mekan32.qumvi.mongodb.net/mekan32?retryWrites=true&w=majority";
+  "mongodb+srv://mekan32:mekan32@mekan32.ieshr.mongodb.net/mekan32?retryWrites=true&w=majority";
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
